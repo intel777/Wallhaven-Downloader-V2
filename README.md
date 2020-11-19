@@ -15,4 +15,4 @@ If you don't want to login, simply press "Login" button without actually eneteri
 
 
 ## Everything else
-C# is not my main language so code may be garbage, pull requests are wellcomed as well as bug reports, etc.
+C# is not my main language so code may be garbage, pull requests are welcomed as well as bug reports, etc.
