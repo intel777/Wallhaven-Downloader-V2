@@ -1,4 +1,5 @@
 # Wallhaven Downloader
+![Screenshot](https://github.com/intel777/Wallhaven-Downloader-V2/blob/master/2020-11-19_20-53-33-Wallhaven_Downloader_V2.png?raw=true)<br>
 Full-featured API based Wallhaven downloader written with C# and Windows Forms 
 
 ## About
