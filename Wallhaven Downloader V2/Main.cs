@@ -677,7 +677,7 @@ namespace Wallhaven_Downloader_V2 {
                 else {
                     if (ImageSourceUserCollectionsRadioButton.Checked) {
                         Logpush("Image source: User collection");
-                        if (selected_collection != 0) {
+                        if (Collections.Count > 0) {
                             Collection target_collection = Collections[selected_collection];
                             Logpush($"Selected collection is {target_collection.name}, ID: {target_collection.id}, User: {target_collection.owner}");
                             Logpush("Warn: Only Purity filter can be aplied to collections!");
