@@ -18,7 +18,7 @@ namespace Wallhaven_Downloader_V2 {
         public List<string> ratios;
         public List<string> colors;
         public int page;
-        public int seed;
+        public string seed;
 
         public SearchParameters() {
             q = "";
@@ -32,7 +32,7 @@ namespace Wallhaven_Downloader_V2 {
             colors = new List<string>() { };
             ratios = new List<String>() { };
             page = 1;
-            seed = 0;
+            seed = "";
         }
 
         public void ConvertFromJson(JObject input) {
@@ -94,7 +94,7 @@ namespace Wallhaven_Downloader_V2 {
             if (atleast != "") {
                 result += $"&atleast={atleast}";
             }
-            if (seed != 0) {
+            if (seed != "") {
                 result += $"&seed={seed}";
             }
             if (resolutions.Count > 0) {

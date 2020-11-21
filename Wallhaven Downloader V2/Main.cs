@@ -621,6 +621,7 @@ namespace Wallhaven_Downloader_V2 {
                 LockInterface();
                 Logpush("===WORK BEGIN===");
                 Logpush("Prepearing for download...");
+                Logpush("This might take a while. (Images fetched at rate of 64/1.34s)");
                 ProgressBarSetValue(0);
                 List<Image> Images = new List<Image>();
                 int threads_requested = Int32.Parse(ThreadsTextBox.Text);
@@ -639,17 +640,26 @@ namespace Wallhaven_Downloader_V2 {
                 else {
                     search_params.page = 1;
                 }
+                if (AdvancedSearchSeed.Text != "") {
+                    search_params.seed = AdvancedSearchSeed.Text;
+                }
+                else {
+                    search_params.seed = "";
+                }
 
 
                 if (ImageSourceSearchRadioButton.Checked) {
                     Logpush("Image source: Search");
                     search_params.q = WebUtility.UrlEncode(ImageSourceSearchQuery.Text);
                     string request_url = $"https://wallhaven.cc/api/v1/search?{search_params}&apikey={APIKey}";
-                    Logpush($"Request url {request_url}");
                     JObject probe = GetJsonFromURL(request_url);
                     if (target_amount == 0) {
                         target_amount = Int32.Parse(probe.SelectToken("meta.total").ToString());
                         Logpush($"Amount set to {target_amount} as it was 0");
+                    }
+                    if (probe.SelectToken("meta.seed").ToString() != "") {
+                        search_params.seed = probe.SelectToken("meta.seed").ToString();
+                        Logpush($"New seed: {search_params.seed}");
                     }
                     while (Images.Count < target_amount & started) {
                         Thread.Sleep(1340);
@@ -667,27 +677,34 @@ namespace Wallhaven_Downloader_V2 {
                 else {
                     if (ImageSourceUserCollectionsRadioButton.Checked) {
                         Logpush("Image source: User collection");
-                        Collection target_collection = Collections[selected_collection];
-                        Logpush($"Selected collection is {target_collection.name}, ID: {target_collection.id}, User: {target_collection.owner}");
-                        Logpush("Warn: Only Purity filter can be aplied to collections!");
-                        int page = 1;
-                        int max_pages = 0;
-                        string base_url = $"https://wallhaven.cc/api/v1/collections/{target_collection.owner}/{target_collection.id}";
-                        JObject response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
-                        max_pages = Int32.Parse(response.SelectToken("meta.last_page").ToString());
-                        if (target_amount == 0) {
-                            target_amount = Int32.Parse(response.SelectToken("meta.total").ToString());
-                            Logpush($"Amount set to {target_amount} as it was 0");
-                        }
-                        while (Images.Count < target_amount) {
-                            foreach(var image in response.SelectToken("data")) {
-                                Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
-                                if (Images.Count >= target_amount) {
-                                    break;
-                                }
-                                page++;
-                                response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
+                        if (selected_collection != 0) {
+                            Collection target_collection = Collections[selected_collection];
+                            Logpush($"Selected collection is {target_collection.name}, ID: {target_collection.id}, User: {target_collection.owner}");
+                            Logpush("Warn: Only Purity filter can be aplied to collections!");
+                            int page = 1;
+                            int max_pages = 0;
+                            string base_url = $"https://wallhaven.cc/api/v1/collections/{target_collection.owner}/{target_collection.id}";
+                            JObject response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
+                            max_pages = Int32.Parse(response.SelectToken("meta.last_page").ToString());
+                            if (target_amount == 0) {
+                                target_amount = Int32.Parse(response.SelectToken("meta.total").ToString());
+                                Logpush($"Amount set to {target_amount} as it was 0");
                             }
+                            while (Images.Count < target_amount) {
+                                Thread.Sleep(1340);
+                                foreach (var image in response.SelectToken("data")) {
+                                    Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
+                                    if (Images.Count >= target_amount) {
+                                        break;
+                                    }
+                                    page++;
+                                    response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
+                                }
+                            }
+                        }
+                        else {
+                            MessageBox.Show("User collection not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            started = false;
                         }
                     }
                 }
@@ -738,7 +755,7 @@ namespace Wallhaven_Downloader_V2 {
 
         private void CancelButton_Click(object sender, EventArgs e) {
             started = false;
-            Logpush("[Cancel] Signal send, please wait for main thread to respond...");
+            Logpush("[Cancel] Signal send, please wait for main and workers threads to respond...");
         }
 
         private void ImageSourceCollectionsListBox_IndexChanged(object sender, EventArgs e) {
