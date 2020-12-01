@@ -129,7 +129,6 @@ namespace Wallhaven_Downloader_V2 {
                 DownloadProgressBar.PerformStep();
             }
         }
-
         private void AdvancedSearchPage_KeyPressed(object sender, KeyPressEventArgs e) {
             if ((e.KeyChar <= 47 || e.KeyChar >= 58) && e.KeyChar != 8)
                 e.Handled = true;
@@ -504,6 +503,7 @@ namespace Wallhaven_Downloader_V2 {
         private void SortingComboBox_IndexChanged(object sender, EventArgs e) {
             string new_value = "date_added";
             TopListComboBox.Enabled = false;
+            AdvancedSearchSeed.Enabled = false;
             switch (SortingComboBox.SelectedIndex) {
                 case 0:
                     new_value = "date_added";
@@ -513,6 +513,7 @@ namespace Wallhaven_Downloader_V2 {
                     break;
                 case 2:
                     new_value = "random";
+                    AdvancedSearchSeed.Enabled = true;
                     break;
                 case 3:
                     new_value = "views";
@@ -530,12 +531,23 @@ namespace Wallhaven_Downloader_V2 {
 
         private void AdvancedSearchEnabled_CheckedChanged(object sender, EventArgs e) {
             if (AdvancedSearchEnabled.Checked) {
-                AdvancedSearchPage.Enabled = true;
-                AdvancedSearchSeed.Enabled = true;
+                PageSelectorRadioButton.Enabled = true;
+                PagesRangeSelectorRadioButton.Enabled = true;
+                if (PageSelectorRadioButton.Checked) {
+                    AdvancedSearchPage.Enabled = true;
+                }
+                if (PagesRangeSelectorRadioButton.Checked) {
+                    PagesRangeBegin.Enabled = true;
+                    PagesRangeEnd.Enabled = true;
+                }
             }
             else {
                 AdvancedSearchPage.Enabled = false;
                 AdvancedSearchSeed.Enabled = false;
+                PageSelectorRadioButton.Enabled = false;
+                PagesRangeSelectorRadioButton.Enabled = false;
+                PagesRangeBegin.Enabled = false;
+                PagesRangeEnd.Enabled = false;
             }
         }
 
@@ -621,7 +633,6 @@ namespace Wallhaven_Downloader_V2 {
                 LockInterface();
                 Logpush("===WORK BEGIN===");
                 Logpush("Prepearing for download...");
-                Logpush("This might take a while. (Images fetched at rate of 64/1.34s)");
                 ProgressBarSetValue(0);
                 List<Image> Images = new List<Image>();
                 int threads_requested = Int32.Parse(ThreadsTextBox.Text);
@@ -634,11 +645,30 @@ namespace Wallhaven_Downloader_V2 {
                 else {
                     target_amount = 0;
                 }
-                if (AdvancedSearchPage.Text != "" & AdvancedSearchPage.Text != "0") {
-                    search_params.page = Int32.Parse(AdvancedSearchPage.Text);
+                if (PageSelectorRadioButton.Checked) {
+                    if (AdvancedSearchPage.Text != "" & AdvancedSearchPage.Text != "0") {
+                        search_params.page = Int32.Parse(AdvancedSearchPage.Text);
+                    }
+                    else {
+                        search_params.page = 1;
+                    }
                 }
                 else {
-                    search_params.page = 1;
+                    if (PagesRangeSelectorRadioButton.Checked) {
+                        Logpush("Range selected, calculating values...");
+                        int range_begin = Int32.Parse(PagesRangeBegin.Text);
+                        int range_end = Int32.Parse(PagesRangeEnd.Text);
+                        int range_delta = range_end - range_begin;
+                        if (range_delta > 0) {
+                            target_amount = range_delta * 64;
+                            search_params.page = range_begin;
+                            Logpush($"New params: target_amount = {target_amount}, page = {search_params.page}");
+                        }
+                        else {
+                            MessageBox.Show("Begin page cannot be grater or equal to end page.");
+                            started = false;
+                        }
+                    }
                 }
                 if (AdvancedSearchSeed.Text != "") {
                     search_params.seed = AdvancedSearchSeed.Text;
@@ -647,97 +677,105 @@ namespace Wallhaven_Downloader_V2 {
                     search_params.seed = "";
                 }
 
-
-                if (ImageSourceSearchRadioButton.Checked) {
-                    Logpush("Image source: Search");
-                    search_params.q = WebUtility.UrlEncode(ImageSourceSearchQuery.Text);
-                    string request_url = $"https://wallhaven.cc/api/v1/search?{search_params}&apikey={APIKey}";
-                    JObject probe = GetJsonFromURL(request_url);
-                    if (target_amount == 0) {
-                        target_amount = Int32.Parse(probe.SelectToken("meta.total").ToString());
-                        Logpush($"Amount set to {target_amount} as it was 0");
-                    }
-                    if (probe.SelectToken("meta.seed").ToString() != "") {
-                        search_params.seed = probe.SelectToken("meta.seed").ToString();
-                        Logpush($"New seed: {search_params.seed}");
-                    }
-                    while (Images.Count < target_amount & started) {
-                        Thread.Sleep(1340);
-                        foreach (var image in probe.SelectToken("data")) {
-                            Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
-                            if (Images.Count >= target_amount) {
-                                break;
-                            }
+                if (started) {
+                    Logpush("This might take a while. (Images fetched at rate of 64/1.34s)");
+                    Logpush("[Stage 1/2: URL fetching]");
+                    if (ImageSourceSearchRadioButton.Checked) {
+                        Logpush("Image source: Search");
+                        search_params.q = WebUtility.UrlEncode(ImageSourceSearchQuery.Text);
+                        string request_url = $"https://wallhaven.cc/api/v1/search?{search_params}&apikey={APIKey}";
+                        JObject probe = GetJsonFromURL(request_url);
+                        if (target_amount == 0) {
+                            target_amount = Int32.Parse(probe.SelectToken("meta.total").ToString());
+                            Logpush($"Amount set to {target_amount} as it was 0");
                         }
-                        search_params.page++;
-                        request_url = $"https://wallhaven.cc/api/v1/search?{search_params}&apikey={APIKey}";
-                        probe = GetJsonFromURL(request_url);
-                    }
-                }
-                else {
-                    if (ImageSourceUserCollectionsRadioButton.Checked) {
-                        Logpush("Image source: User collection");
-                        if (Collections.Count > 0) {
-                            Collection target_collection = Collections[selected_collection];
-                            Logpush($"Selected collection is {target_collection.name}, ID: {target_collection.id}, User: {target_collection.owner}");
-                            Logpush("Warn: Only Purity filter can be aplied to collections!");
-                            int page = 1;
-                            int max_pages = 0;
-                            string base_url = $"https://wallhaven.cc/api/v1/collections/{target_collection.owner}/{target_collection.id}";
-                            JObject response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
-                            max_pages = Int32.Parse(response.SelectToken("meta.last_page").ToString());
-                            if (target_amount == 0) {
-                                target_amount = Int32.Parse(response.SelectToken("meta.total").ToString());
-                                Logpush($"Amount set to {target_amount} as it was 0");
-                            }
-                            while (Images.Count < target_amount) {
-                                Thread.Sleep(1340);
-                                foreach (var image in response.SelectToken("data")) {
-                                    Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
-                                    if (Images.Count >= target_amount) {
-                                        break;
-                                    }
-                                    page++;
-                                    response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
+                        if (probe.SelectToken("meta.seed").ToString() != "") {
+                            search_params.seed = probe.SelectToken("meta.seed").ToString();
+                            Logpush($"New seed: {search_params.seed}");
+                        }
+                        ProgressBarSetValue(0);
+                        SetMaxProgressBar(target_amount);
+                        while (Images.Count < target_amount & started) {
+                            Thread.Sleep(1340);
+                            foreach (var image in probe.SelectToken("data")) {
+                                Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
+                                ProgressBarSetValue(Images.Count);
+                                if (Images.Count >= target_amount) {
+                                    break;
                                 }
                             }
+                            search_params.page++;
+                            request_url = $"https://wallhaven.cc/api/v1/search?{search_params}&apikey={APIKey}";
+                            probe = GetJsonFromURL(request_url);
                         }
-                        else {
-                            MessageBox.Show("User collection not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            started = false;
-                        }
-                    }
-                }
-
-                if (started) {
-                    Logpush("Prepearing download workers...");
-                    SetMaxProgressBar(Images.Count);
-                    int chunk_size = 0;
-                    int threads_to_spawn = Properties.Settings.Default.Threads;
-                    List<Thread> Threads = new List<Thread>();
-                    if (Images.Count > threads_to_spawn) {
-                        chunk_size = Images.Count / threads_to_spawn;
                     }
                     else {
-                        threads_to_spawn = Images.Count;
-                    }
-                    for (int i = 0; i < threads_to_spawn; i++) {
-                        Threads.Add(new Thread(new ParameterizedThreadStart(DownloadImagesFromList)));
+                        if (ImageSourceUserCollectionsRadioButton.Checked) {
+                            Logpush("Image source: User collection");
+                            if (Collections.Count > 0) {
+                                Collection target_collection = Collections[selected_collection];
+                                Logpush($"Selected collection is {target_collection.name}, ID: {target_collection.id}, User: {target_collection.owner}");
+                                Logpush("Warn: Only Purity filter can be aplied to collections!");
+                                int page = 1;
+                                int max_pages = 0;
+                                string base_url = $"https://wallhaven.cc/api/v1/collections/{target_collection.owner}/{target_collection.id}";
+                                JObject response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
+                                max_pages = Int32.Parse(response.SelectToken("meta.last_page").ToString());
+                                if (target_amount == 0) {
+                                    target_amount = Int32.Parse(response.SelectToken("meta.total").ToString());
+                                    Logpush($"Amount set to {target_amount} as it was 0");
+                                }
+                                while (Images.Count < target_amount) {
+                                    Thread.Sleep(1340);
+                                    foreach (var image in response.SelectToken("data")) {
+                                        Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
+                                        if (Images.Count >= target_amount) {
+                                            break;
+                                        }
+                                        page++;
+                                        response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
+                                    }
+                                }
+                            }
+                            else {
+                                MessageBox.Show("User collection not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                started = false;
+                            }
+                        }
                     }
 
-                    Logpush("Starting download workers...");
-                    int ii = 0;
-                    int amount_selector = chunk_size;
-                    foreach (var thread in Threads) {
-                        if (ii+1 == Threads.Count) {
-                            amount_selector = Images.Count - ii * chunk_size;
+                    if (started) {
+                        Logpush("[Stage 2/2: Download]");
+                        Logpush("Prepearing download workers...");
+                        ProgressBarSetValue(0);
+                        SetMaxProgressBar(Images.Count);
+                        int chunk_size = 0;
+                        int threads_to_spawn = Properties.Settings.Default.Threads;
+                        List<Thread> Threads = new List<Thread>();
+                        if (Images.Count > threads_to_spawn) {
+                            chunk_size = Images.Count / threads_to_spawn;
                         }
-                        thread.Start(new ThreadParams(Images.GetRange(ii * chunk_size, amount_selector), ii, Images.Count));
-                        ii++;
-                    }
-                    foreach (var thread in Threads) {
-                        while (thread.IsAlive) {
-                            Thread.Sleep(1000);
+                        else {
+                            threads_to_spawn = Images.Count;
+                        }
+                        for (int i = 0; i < threads_to_spawn; i++) {
+                            Threads.Add(new Thread(new ParameterizedThreadStart(DownloadImagesFromList)));
+                        }
+
+                        Logpush("Starting download workers...");
+                        int ii = 0;
+                        int amount_selector = chunk_size;
+                        foreach (var thread in Threads) {
+                            if (ii + 1 == Threads.Count) {
+                                amount_selector = Images.Count - ii * chunk_size;
+                            }
+                            thread.Start(new ThreadParams(Images.GetRange(ii * chunk_size, amount_selector), ii, Images.Count));
+                            ii++;
+                        }
+                        foreach (var thread in Threads) {
+                            while (thread.IsAlive) {
+                                Thread.Sleep(1000);
+                            }
                         }
                     }
                 }
@@ -760,6 +798,40 @@ namespace Wallhaven_Downloader_V2 {
 
         private void ImageSourceCollectionsListBox_IndexChanged(object sender, EventArgs e) {
             selected_collection = ImageSourceCollectionsListBox.SelectedIndex;
+        }
+
+        private void PageSelectorRadioButton_CheckedChanged(object sender, EventArgs e) {
+            if (PageSelectorRadioButton.Checked) {
+                AdvancedSearchPage.Enabled = true;
+            }
+            else {
+                AdvancedSearchPage.Enabled = false;
+            }
+        }
+
+        private void PagesRangeSelectorRadioButton_CheckedChanged(object sender, EventArgs e) {
+            if (PagesRangeSelectorRadioButton.Checked) {
+                PagesRangeBegin.Enabled = true;
+                PagesRangeEnd.Enabled = true;
+                AmountToDownloadTextBox.Enabled = false;
+            }
+            else {
+                PagesRangeBegin.Enabled = false;
+                PagesRangeEnd.Enabled = false;
+                AmountToDownloadTextBox.Enabled = true;
+            }
+        }
+
+        private void PagesRangeBegin_KeyPress(object sender, KeyPressEventArgs e) {
+            if ((e.KeyChar <= 47 || e.KeyChar >= 58) && e.KeyChar != 8) {
+                e.Handled = true;
+            }
+        }
+
+        private void PagesRangeEnd_KeyPress(object sender, KeyPressEventArgs e) {
+            if ((e.KeyChar <= 47 || e.KeyChar >= 58) && e.KeyChar != 8) {
+                e.Handled = true;
+            }
         }
     }
 }

@@ -69,19 +69,23 @@ namespace Wallhaven_Downloader_V2
             this.OrderAscendingRadioButton = new System.Windows.Forms.RadioButton();
             this.SearchSettingsGroupBox = new System.Windows.Forms.GroupBox();
             this.AdvancedSearchGroupBox = new System.Windows.Forms.GroupBox();
-            this.label4 = new System.Windows.Forms.Label();
+            this.PagesRangeEnd = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.PagesRangeBegin = new System.Windows.Forms.TextBox();
+            this.PagesRangeSelectorRadioButton = new System.Windows.Forms.RadioButton();
+            this.PageSelectorRadioButton = new System.Windows.Forms.RadioButton();
             this.AdvancedSearchSeed = new System.Windows.Forms.TextBox();
             this.AdvancedSearchSeedLabel = new System.Windows.Forms.Label();
-            this.AdvancedSearchPageLabel = new System.Windows.Forms.Label();
             this.AdvancedSearchPage = new System.Windows.Forms.TextBox();
             this.AdvancedSearchEnabled = new System.Windows.Forms.CheckBox();
             this.LogGroupBox = new System.Windows.Forms.GroupBox();
+            this.DownloadProgressBar = new System.Windows.Forms.ProgressBar();
             this.DownloadButton = new System.Windows.Forms.Button();
             this.CancelButton = new System.Windows.Forms.Button();
             this.ImageSourceGroupBox = new System.Windows.Forms.GroupBox();
             this.AmountToDownloadTextBox = new System.Windows.Forms.TextBox();
-            this.AmountToDownloadLabel = new System.Windows.Forms.Label();
             this.ImageSourceCollectionsListBox = new System.Windows.Forms.ListBox();
+            this.AmountToDownloadLabel = new System.Windows.Forms.Label();
             this.ImageSourceFetchCollections = new System.Windows.Forms.Button();
             this.ImageSourceUsername = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -95,7 +99,6 @@ namespace Wallhaven_Downloader_V2
             this.ThreadsLabel = new System.Windows.Forms.Label();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
-            this.DownloadProgressBar = new System.Windows.Forms.ProgressBar();
             this.FiltersGroupBox.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.RatioGroupBox.SuspendLayout();
@@ -550,10 +553,13 @@ namespace Wallhaven_Downloader_V2
             // 
             // AdvancedSearchGroupBox
             // 
-            this.AdvancedSearchGroupBox.Controls.Add(this.label4);
+            this.AdvancedSearchGroupBox.Controls.Add(this.PagesRangeEnd);
+            this.AdvancedSearchGroupBox.Controls.Add(this.label3);
+            this.AdvancedSearchGroupBox.Controls.Add(this.PagesRangeBegin);
+            this.AdvancedSearchGroupBox.Controls.Add(this.PagesRangeSelectorRadioButton);
+            this.AdvancedSearchGroupBox.Controls.Add(this.PageSelectorRadioButton);
             this.AdvancedSearchGroupBox.Controls.Add(this.AdvancedSearchSeed);
             this.AdvancedSearchGroupBox.Controls.Add(this.AdvancedSearchSeedLabel);
-            this.AdvancedSearchGroupBox.Controls.Add(this.AdvancedSearchPageLabel);
             this.AdvancedSearchGroupBox.Controls.Add(this.AdvancedSearchPage);
             this.AdvancedSearchGroupBox.Controls.Add(this.AdvancedSearchEnabled);
             this.AdvancedSearchGroupBox.Location = new System.Drawing.Point(189, 19);
@@ -563,47 +569,82 @@ namespace Wallhaven_Downloader_V2
             this.AdvancedSearchGroupBox.TabStop = false;
             this.AdvancedSearchGroupBox.Text = "Advanced";
             // 
-            // label4
+            // PagesRangeEnd
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 72);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(156, 13);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "Seed for \"Random\" sorting only";
+            this.PagesRangeEnd.Enabled = false;
+            this.PagesRangeEnd.Location = new System.Drawing.Point(149, 69);
+            this.PagesRangeEnd.Name = "PagesRangeEnd";
+            this.PagesRangeEnd.Size = new System.Drawing.Size(25, 20);
+            this.PagesRangeEnd.TabIndex = 11;
+            this.PagesRangeEnd.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PagesRangeEnd_KeyPress);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(131, 72);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(12, 13);
+            this.label3.TabIndex = 10;
+            this.label3.Text = "–";
+            // 
+            // PagesRangeBegin
+            // 
+            this.PagesRangeBegin.Enabled = false;
+            this.PagesRangeBegin.Location = new System.Drawing.Point(100, 69);
+            this.PagesRangeBegin.Name = "PagesRangeBegin";
+            this.PagesRangeBegin.Size = new System.Drawing.Size(25, 20);
+            this.PagesRangeBegin.TabIndex = 9;
+            this.PagesRangeBegin.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PagesRangeBegin_KeyPress);
+            // 
+            // PagesRangeSelectorRadioButton
+            // 
+            this.PagesRangeSelectorRadioButton.AutoSize = true;
+            this.PagesRangeSelectorRadioButton.Enabled = false;
+            this.PagesRangeSelectorRadioButton.Location = new System.Drawing.Point(5, 70);
+            this.PagesRangeSelectorRadioButton.Name = "PagesRangeSelectorRadioButton";
+            this.PagesRangeSelectorRadioButton.Size = new System.Drawing.Size(88, 17);
+            this.PagesRangeSelectorRadioButton.TabIndex = 8;
+            this.PagesRangeSelectorRadioButton.Text = "Pages range:";
+            this.PagesRangeSelectorRadioButton.UseVisualStyleBackColor = true;
+            this.PagesRangeSelectorRadioButton.CheckedChanged += new System.EventHandler(this.PagesRangeSelectorRadioButton_CheckedChanged);
+            // 
+            // PageSelectorRadioButton
+            // 
+            this.PageSelectorRadioButton.AutoSize = true;
+            this.PageSelectorRadioButton.Checked = true;
+            this.PageSelectorRadioButton.Enabled = false;
+            this.PageSelectorRadioButton.Location = new System.Drawing.Point(6, 44);
+            this.PageSelectorRadioButton.Name = "PageSelectorRadioButton";
+            this.PageSelectorRadioButton.Size = new System.Drawing.Size(82, 17);
+            this.PageSelectorRadioButton.TabIndex = 7;
+            this.PageSelectorRadioButton.TabStop = true;
+            this.PageSelectorRadioButton.Text = "Begin page:";
+            this.PageSelectorRadioButton.UseVisualStyleBackColor = true;
+            this.PageSelectorRadioButton.CheckedChanged += new System.EventHandler(this.PageSelectorRadioButton_CheckedChanged);
             // 
             // AdvancedSearchSeed
             // 
             this.AdvancedSearchSeed.Enabled = false;
-            this.AdvancedSearchSeed.Location = new System.Drawing.Point(133, 42);
+            this.AdvancedSearchSeed.Location = new System.Drawing.Point(136, 17);
             this.AdvancedSearchSeed.Name = "AdvancedSearchSeed";
-            this.AdvancedSearchSeed.Size = new System.Drawing.Size(42, 20);
+            this.AdvancedSearchSeed.Size = new System.Drawing.Size(39, 20);
             this.AdvancedSearchSeed.TabIndex = 6;
             // 
             // AdvancedSearchSeedLabel
             // 
             this.AdvancedSearchSeedLabel.AutoSize = true;
-            this.AdvancedSearchSeedLabel.Location = new System.Drawing.Point(92, 45);
+            this.AdvancedSearchSeedLabel.Location = new System.Drawing.Point(95, 20);
             this.AdvancedSearchSeedLabel.Name = "AdvancedSearchSeedLabel";
             this.AdvancedSearchSeedLabel.Size = new System.Drawing.Size(35, 13);
             this.AdvancedSearchSeedLabel.TabIndex = 5;
             this.AdvancedSearchSeedLabel.Text = "Seed:";
             // 
-            // AdvancedSearchPageLabel
-            // 
-            this.AdvancedSearchPageLabel.AutoSize = true;
-            this.AdvancedSearchPageLabel.Location = new System.Drawing.Point(6, 45);
-            this.AdvancedSearchPageLabel.Name = "AdvancedSearchPageLabel";
-            this.AdvancedSearchPageLabel.Size = new System.Drawing.Size(38, 13);
-            this.AdvancedSearchPageLabel.TabIndex = 4;
-            this.AdvancedSearchPageLabel.Text = "Page: ";
-            // 
             // AdvancedSearchPage
             // 
             this.AdvancedSearchPage.Enabled = false;
-            this.AdvancedSearchPage.Location = new System.Drawing.Point(44, 42);
+            this.AdvancedSearchPage.Location = new System.Drawing.Point(100, 43);
             this.AdvancedSearchPage.Name = "AdvancedSearchPage";
-            this.AdvancedSearchPage.Size = new System.Drawing.Size(42, 20);
+            this.AdvancedSearchPage.Size = new System.Drawing.Size(25, 20);
             this.AdvancedSearchPage.TabIndex = 4;
             this.AdvancedSearchPage.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.AdvancedSearchPage_KeyPressed);
             // 
@@ -628,6 +669,13 @@ namespace Wallhaven_Downloader_V2
             this.LogGroupBox.TabIndex = 4;
             this.LogGroupBox.TabStop = false;
             this.LogGroupBox.Text = "Log";
+            // 
+            // DownloadProgressBar
+            // 
+            this.DownloadProgressBar.Location = new System.Drawing.Point(6, 163);
+            this.DownloadProgressBar.Name = "DownloadProgressBar";
+            this.DownloadProgressBar.Size = new System.Drawing.Size(299, 21);
+            this.DownloadProgressBar.TabIndex = 1;
             // 
             // DownloadButton
             // 
@@ -678,15 +726,6 @@ namespace Wallhaven_Downloader_V2
             this.AmountToDownloadTextBox.TabIndex = 13;
             this.AmountToDownloadTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.AmountToDownloadTextBox_KeyPressed);
             // 
-            // AmountToDownloadLabel
-            // 
-            this.AmountToDownloadLabel.AutoSize = true;
-            this.AmountToDownloadLabel.Location = new System.Drawing.Point(12, 25);
-            this.AmountToDownloadLabel.Name = "AmountToDownloadLabel";
-            this.AmountToDownloadLabel.Size = new System.Drawing.Size(168, 13);
-            this.AmountToDownloadLabel.TabIndex = 12;
-            this.AmountToDownloadLabel.Text = "Amount to Download (empty = all):";
-            // 
             // ImageSourceCollectionsListBox
             // 
             this.ImageSourceCollectionsListBox.Enabled = false;
@@ -696,6 +735,15 @@ namespace Wallhaven_Downloader_V2
             this.ImageSourceCollectionsListBox.Size = new System.Drawing.Size(186, 69);
             this.ImageSourceCollectionsListBox.TabIndex = 11;
             this.ImageSourceCollectionsListBox.TabIndexChanged += new System.EventHandler(this.ImageSourceCollectionsListBox_IndexChanged);
+            // 
+            // AmountToDownloadLabel
+            // 
+            this.AmountToDownloadLabel.AutoSize = true;
+            this.AmountToDownloadLabel.Location = new System.Drawing.Point(12, 25);
+            this.AmountToDownloadLabel.Name = "AmountToDownloadLabel";
+            this.AmountToDownloadLabel.Size = new System.Drawing.Size(168, 13);
+            this.AmountToDownloadLabel.TabIndex = 12;
+            this.AmountToDownloadLabel.Text = "Amount to Download (empty = all):";
             // 
             // ImageSourceFetchCollections
             // 
@@ -807,13 +855,6 @@ namespace Wallhaven_Downloader_V2
             this.ThreadsLabel.TabIndex = 7;
             this.ThreadsLabel.Text = "Threads: ";
             // 
-            // DownloadProgressBar
-            // 
-            this.DownloadProgressBar.Location = new System.Drawing.Point(6, 163);
-            this.DownloadProgressBar.Name = "DownloadProgressBar";
-            this.DownloadProgressBar.Size = new System.Drawing.Size(299, 21);
-            this.DownloadProgressBar.TabIndex = 1;
-            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -892,7 +933,6 @@ namespace Wallhaven_Downloader_V2
         private System.Windows.Forms.CheckBox ColorEnableCheckbox;
         private System.Windows.Forms.GroupBox SearchSettingsGroupBox;
         private System.Windows.Forms.GroupBox AdvancedSearchGroupBox;
-        private System.Windows.Forms.Label AdvancedSearchPageLabel;
         private System.Windows.Forms.CheckBox AdvancedSearchEnabled;
         private System.Windows.Forms.TextBox AdvancedSearchSeed;
         private System.Windows.Forms.Label AdvancedSearchSeedLabel;
@@ -917,10 +957,14 @@ namespace Wallhaven_Downloader_V2
         private System.Windows.Forms.ListBox RatioListBox;
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.Button LogoutButton;
-        private System.Windows.Forms.Label label4;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.TextBox AmountToDownloadTextBox;
         private System.Windows.Forms.Label AmountToDownloadLabel;
         private System.Windows.Forms.ProgressBar DownloadProgressBar;
+        private System.Windows.Forms.RadioButton PageSelectorRadioButton;
+        private System.Windows.Forms.TextBox PagesRangeEnd;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox PagesRangeBegin;
+        private System.Windows.Forms.RadioButton PagesRangeSelectorRadioButton;
     }
 }
