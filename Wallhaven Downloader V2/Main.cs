@@ -417,6 +417,7 @@ namespace Wallhaven_Downloader_V2 {
                 ResolutionListBox.Enabled = false;
                 ResolutionButtonRemove.Enabled = false;
                 search_params.resolutions = new List<String>();
+                search_params.atleast = "";
                 UpdateShownSettings();
             }
         }
@@ -644,6 +645,9 @@ namespace Wallhaven_Downloader_V2 {
                 }
                 else {
                     target_amount = 0;
+                }
+                if (ResolutionsEnabledCheckbox.Checked & ResolutionAtleastWidth.Text != "" & ResolutionAtleastHeight.Text != "") {
+                    search_params.atleast = ResolutionAtleastWidth.Text + "x" + ResolutionAtleastHeight.Text; 
                 }
                 if (PageSelectorRadioButton.Checked) {
                     if (AdvancedSearchPage.Text != "" & AdvancedSearchPage.Text != "0") {
