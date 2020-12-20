@@ -708,7 +708,12 @@ namespace Wallhaven_Downloader_V2 {
                             Logpush($"New seed: {search_params.seed}");
                         }
                         ProgressBarSetValue(0);
-                        SetMaxProgressBar(target_amount);
+                        if (PagesRangeSelectorRadioButton.Checked) {
+                            SetMaxProgressBar((1 + search_params.end_page - search_params.page) * (Int32.Parse(probe.SelectToken("meta.per_page").ToString())));
+                        }
+                        else {
+                            SetMaxProgressBar(target_amount);
+                        }
                         while ((Images.Count < target_amount & search_params.page <= search_params.end_page) & started) {
                             Thread.Sleep(1340);
                             foreach (var image in probe.SelectToken("data")) {
@@ -736,8 +741,23 @@ namespace Wallhaven_Downloader_V2 {
                                     target_amount = Int32.Parse(response.SelectToken("meta.total").ToString());
                                     Logpush($"Amount set to {target_amount} as it was 0");
                                 }
+                                else {
+                                    Logpush("Amount will be used to determine when to stop.");
+                                }
+                                if (search_params.end_page == 0) {
+                                    search_params.end_page = Int32.Parse(response.SelectToken("meta.last_page").ToString());
+                                    Logpush($"End page set to {search_params.end_page} as it was 0");
+                                }
+                                else {
+                                    Logpush("Eng page will be used to determine where to stop.");
+                                }
                                 ProgressBarSetValue(0);
-                                SetMaxProgressBar(target_amount);
+                                if (PagesRangeSelectorRadioButton.Checked) {
+                                    SetMaxProgressBar((1 + search_params.end_page - search_params.page) * (Int32.Parse(response.SelectToken("meta.per_page").ToString())));
+                                }
+                                else {
+                                    SetMaxProgressBar(target_amount);
+                                }
                                 while ((Images.Count < target_amount & search_params.page <= search_params.end_page) & started) {
                                     Thread.Sleep(1340);
                                     foreach (var image in response.SelectToken("data")) {
