@@ -664,8 +664,8 @@ namespace Wallhaven_Downloader_V2 {
                         int range_end = Int32.Parse(PagesRangeEnd.Text);
                         int range_delta = range_end - range_begin;
                         if (range_delta > 0) {
-                            target_amount = range_delta * 64;
                             search_params.page = range_begin;
+                            search_params.end_page = range_end;
                             Logpush($"New params: target_amount = {target_amount}, page = {search_params.page}");
                         }
                         else {
@@ -693,13 +693,23 @@ namespace Wallhaven_Downloader_V2 {
                             target_amount = Int32.Parse(probe.SelectToken("meta.total").ToString());
                             Logpush($"Amount set to {target_amount} as it was 0");
                         }
+                        else {
+                            Logpush("Amount will be used to determine when to stop.");
+                        }
+                        if (search_params.end_page == 0) {
+                            search_params.end_page = Int32.Parse(probe.SelectToken("meta.last_page").ToString());
+                            Logpush($"End page set to {search_params.end_page} as it was 0");
+                        }
+                        else {
+                            Logpush("Eng page will be used to determine where to stop.");
+                        }
                         if (probe.SelectToken("meta.seed").ToString() != "") {
                             search_params.seed = probe.SelectToken("meta.seed").ToString();
                             Logpush($"New seed: {search_params.seed}");
                         }
                         ProgressBarSetValue(0);
                         SetMaxProgressBar(target_amount);
-                        while (Images.Count < target_amount & started) {
+                        while ((Images.Count < target_amount & search_params.page <= search_params.end_page) & started) {
                             Thread.Sleep(1340);
                             foreach (var image in probe.SelectToken("data")) {
                                 Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
@@ -720,25 +730,25 @@ namespace Wallhaven_Downloader_V2 {
                                 Collection target_collection = Collections[selected_collection];
                                 Logpush($"Selected collection is {target_collection.name}, ID: {target_collection.id}, User: {target_collection.owner}");
                                 Logpush("Warn: Only Purity filter can be aplied to collections!");
-                                int page = 1;
-                                int max_pages = 0;
                                 string base_url = $"https://wallhaven.cc/api/v1/collections/{target_collection.owner}/{target_collection.id}";
-                                JObject response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
-                                max_pages = Int32.Parse(response.SelectToken("meta.last_page").ToString());
+                                JObject response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={search_params.page}&apikey={APIKey}");
                                 if (target_amount == 0) {
                                     target_amount = Int32.Parse(response.SelectToken("meta.total").ToString());
                                     Logpush($"Amount set to {target_amount} as it was 0");
                                 }
-                                while (Images.Count < target_amount) {
+                                ProgressBarSetValue(0);
+                                SetMaxProgressBar(target_amount);
+                                while ((Images.Count < target_amount & search_params.page <= search_params.end_page) & started) {
                                     Thread.Sleep(1340);
                                     foreach (var image in response.SelectToken("data")) {
                                         Images.Add(new Image(image["id"].ToString(), image["path"].ToString()));
+                                        ProgressBarSetValue(Images.Count);
                                         if (Images.Count >= target_amount) {
                                             break;
                                         }
-                                        page++;
-                                        response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={page}&apikey={APIKey}");
                                     }
+                                    search_params.page++;
+                                    response = GetJsonFromURL(base_url + $"?purity={search_params.purity}&page={search_params.page}&apikey={APIKey}");
                                 }
                             }
                             else {
@@ -800,7 +810,7 @@ namespace Wallhaven_Downloader_V2 {
             Logpush("[Cancel] Signal send, please wait for main and workers threads to respond...");
         }
 
-        private void ImageSourceCollectionsListBox_IndexChanged(object sender, EventArgs e) {
+        private void ImageSourceCollectionsListBox_SelectedIndexChanged(object sender, EventArgs e) {
             selected_collection = ImageSourceCollectionsListBox.SelectedIndex;
         }
 

@@ -734,7 +734,8 @@ namespace Wallhaven_Downloader_V2
             this.ImageSourceCollectionsListBox.Name = "ImageSourceCollectionsListBox";
             this.ImageSourceCollectionsListBox.Size = new System.Drawing.Size(186, 69);
             this.ImageSourceCollectionsListBox.TabIndex = 11;
-            this.ImageSourceCollectionsListBox.TabIndexChanged += new System.EventHandler(this.ImageSourceCollectionsListBox_IndexChanged);
+            this.ImageSourceCollectionsListBox.SelectedIndexChanged += new System.EventHandler(this.ImageSourceCollectionsListBox_SelectedIndexChanged);
+            this.ImageSourceCollectionsListBox.TabIndexChanged += new System.EventHandler(this.ImageSourceCollectionsListBox_SelectedIndexChanged);
             // 
             // AmountToDownloadLabel
             // 

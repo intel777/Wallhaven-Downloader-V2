@@ -18,6 +18,7 @@ namespace Wallhaven_Downloader_V2 {
         public List<string> ratios;
         public List<string> colors;
         public int page;
+        public int end_page;
         public string seed;
 
         public SearchParameters() {
@@ -32,6 +33,7 @@ namespace Wallhaven_Downloader_V2 {
             colors = new List<string>() { };
             ratios = new List<String>() { };
             page = 1;
+            end_page = 0;
             seed = "";
         }
 
